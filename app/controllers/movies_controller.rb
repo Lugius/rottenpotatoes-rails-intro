@@ -11,20 +11,25 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if (params[:method] == "by_title") then
+    session.update(params)
+    if (params[:ratings] == nil or params[:method] == nil) then
+      flash.keep
+      redirect_to movies_path({:method => session[:method], :ratings => session[:ratings]})
+    end
+    if (session[:method] == "by_title") then
       @title_header = 'hilite'
-      @movies = Movie.order(:title)
-    elsif (params[:method] == "by_date") then
+      @movies = Movie.where(rating: session[:ratings].keys).order(:title)
+    elsif (session[:method] == "by_date") then
       @release_date_header ='hilite'
-      @movies = Movie.order(:release_date)
+      @movies = Movie.where(rating: session[:ratings].keys).order(:release_date)
     else
-      if (params[:ratings]) then
-        @movies = Movie.where(rating: params[:ratings].keys)
-        @selected_ratings = params[:ratings].keys
+      if (session[:ratings]) then
+        @movies = Movie.where(rating: session[:ratings].keys)
       else
         @movies = Movie.all
       end
     end
+    @selected_ratings = session[:ratings].keys
     @all_ratings = Movie.movie_ratings()
   end
 
